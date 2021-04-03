@@ -5,7 +5,7 @@ from .divide import split_number
 
 def upload_drive(content_file,cred_file):
 	cred=g_auth('media/cred/'+cred_file)
-	return cred.upload_file('media/'+content_file)
+	return cred.upload_file(content_file'media/'+content_file)
 	
 def upload_file(id):
 	file_obj=get_object_or_404(FileUpload,id=id)
