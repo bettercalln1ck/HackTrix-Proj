@@ -9,12 +9,12 @@
                     <div class="col-md-6">
                         <div class="card ">
                             <div class="header">
-                                <h4 class="title">{{som.file_name}}</h4>
-                                <p class="category"><input id="som_inp_{{forloop.counter}}" type="text" value="http://localhost:8000/api/downloadAPI/{{som.id}}">
-                                    <button onclick='var copyText = document.getElementById("som_inp_{{forloop.counter}}");copyText.select();copyText.setSelectionRange(0, 99999);document.execCommand("copy");'>Copy Link</button></p>
+                                <h4 class="title">{{som.file.filename}}</h4>
+
+                                <p class="category"><button onclick="window.location.href='http://127.0.0.1:8000/api/upload_file/{{som.id}}'">upload file to drives</button></p>
                             </div>
                             <div class="content">
-                                copy download link 
+                                about file........
                             </div>
                         </div>
                     </div>

@@ -20,7 +20,13 @@ import json
 from django.db.models import Count
 MINIMUM_NO_OFINSTANCE=1
 def index(request):
-	return render(request,'index.html')
+	context = {'files':OriginalFile.objects.all()}
+	return render(request,'index.html',context)
+
+def forUploading(request):
+	if request.user.is_superuser:
+		context = {'files':FileUpload.objects.all()}
+		return render(request,'activate.html',context)
 
 def UploadFile(request):
 	if request.method=='POST':
@@ -67,8 +73,8 @@ def upload_file(request,id):
 	for fname in os.listdir('.'):
 		if fname.startswith(filename.split('.')[0]):
 			os.remove(os.path.join('.', fname))
-	context={'file_detail':file_obj}
-	return render(request,'succesful.html',context)
+	file_obj.delete()
+	return render(request,'succesful.html')
 
 
 
@@ -154,19 +160,18 @@ def distribute(request,id):
 	users=UserProfile.objects.order_by('space_used')[:parts]
 	print(os.getcwd())
 	for i,some in enumerate(fileparts):
-		link=share_drive(some.link,some.user.user_profile.filename,some.user.email,users[i%total].user_profile.filename)
-		users[i%total].space_used+=some.size
-		print()
-		users[i%total].save()
-		part_uploaded=users[i%total].folder.parts
-		sc=FilePart(name=some.name,link=link,number=some.number,size=some.size)
+		userIns = users[i%total]
+		file_obj=get_object_or_404(FilePart,id=id)
+		userIns=UserProfile.objects.order_by('space_used')[0]
+		link=share_drive(file_obj.link,file_obj.user.user_profile.filename,file_obj.user.email,userIns.user_profile.filename)
+		userIns.space_used+=file_obj.size
+		userIns.save()
+		sc=FileInstance(link=link)
 		sc.save()
+		file_obj.add(sc)
+		part_uploaded=userIns.folder.parts
 		part_uploaded.add(sc)
-		users[i%total].folder.save()
-		d=uploaded_file.file_parts
-		d.add(sc)
-		users[i%total].save()
-		uploaded_file.save()
+		userIns.folder.save()
 	context={'file_detail':file_obj}
 	return render(request,'succesful.html',context)
 
@@ -180,7 +185,7 @@ def distributeIns(id):
 	sc.save()
 	file_obj.add(sc)
 	part_uploaded=users.folder.parts
-	parts.add(sc)
+	part_uploaded.add(sc)
 	users.folder.save()
 	return sc
 
@@ -212,7 +217,7 @@ def oauthcalback(request):
 	authorization_response =request.build_absolute_uri()
 	flow.fetch_token(code=unquote(request.GET['code']))
 	authFile = randFileName()
-	with open(authFile,'ab') as filR:
+	with open('media/cred/'+authFile,'ab') as filR:
 		pickle.dump(flow.credentials, filR)
 	cred=flow.credentials
 	print(authFile)
@@ -221,25 +226,8 @@ def oauthcalback(request):
 def registerFile(request,authFile):
 	request.user.user_profile.filename = authFile
 	request.user.user_profile.save()
-	return HttpResponse("successfully got creds")
+	return redirect('index')
 
-# flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
-
-# authorization_response = flask.request.url
-# flow.fetch_token(authorization_response=authorization_response)
-
-# Store the credentials in the session.
-# ACTION ITEM for developers:
-#     Store user's access and refresh tokens in your data store if
-#     incorporating this code into your real app.
-# credentials = flow.credentials
-# flask.session['credentials'] = {
-#     'token': credentials.token,
-#     'refresh_token': credentials.refresh_token,
-#     'token_uri': credentials.token_uri,
-#     'client_id': credentials.client_id,
-#     'client_secret': credentials.client_secret,
-#     'scopes': credentials.scopes}
 
 MAX_LIM = 10
 

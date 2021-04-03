@@ -3,7 +3,8 @@ from . import views
 from django.contrib.auth.views import LoginView
 
 urlpatterns = [
-	path('',views.index),
+	path('',views.index,name='index'),
+    path('activate/',views.forUploading,name='activate'),
 	path('upload_file/<id>/',views.upload_file),
     path('logout/',views.log_me_out,name='logout'),
     path('register/',views.Register.as_view(),name='register'),
