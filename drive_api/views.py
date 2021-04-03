@@ -34,13 +34,13 @@ def UploadFile(request):
 
 def upload_drive(content_file,cred_file):
 	cred=g_auth('media/cred/'+cred_file)
-	return cred.upload_file('media/'+content_file)
+	return cred.upload_file(content_file,'media/'+content_file)
 	
 def upload_file(request,id):
 	file_obj=get_object_or_404(FileUpload,id=id)
 	filename=file_obj.file.name
 	name_list=filename.split('.')
-	parts=ceil(split_number(file_obj.file.path,size=10240))
+	parts=ceil(split_number(file_obj.file.path,2))
 	total=UserProfile.objects.count()
 	users=UserProfile.objects.order_by('space_used')[:parts]
 	uploaded_file=OriginalFile(file_name=filename,number_of_parts=parts)
@@ -262,7 +262,7 @@ def create_link(somLink):
 
 
 def DownloadFile(request,id):
-	hasIns=get_object_or_404(UserHash,id=id)
+	hasIns=get_object_or_404(UserHash,hash_instance=id)
 	some=FileInstance.objects.filter(hash_active__hash_instance = id)[0]
 	data={'link':some.link}
 	hasIns.delete()
@@ -274,7 +274,7 @@ def downloadAPI(request,id):
 	number_of_parts=file_obj.number_of_parts
 	for fil_link in file_obj.file_parts.all():
 		some.append(create_link(fil_link))
-	data={'filename':file_obj.file_name,'link':some}
+	data={'filename':file_obj.file_name,'hash':some}
 	return JsonResponse(data)
 
 def MyFiles(request):
