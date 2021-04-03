@@ -1,6 +1,6 @@
 {% extends 'base.html' %}
 {% block new %}
-<canvas id="myCanvas" width="700" height="700"></canvas>
+<canvas id="myCanvas" width="900" height="900"></canvas>
 
 <script>
     var canvas = document.getElementById('myCanvas');
@@ -8,7 +8,7 @@
        var centerX = canvas.width / 2;
        var centerY = canvas.height / 2;
        var radius = 10;
-       var rad=100;
+       var rad=40;
        var n={{org_file.number_of_parts}};
        var angle=2*Math.PI/n;
        context.beginPath();
@@ -20,14 +20,23 @@
        context.strokeStyle = '#003300';
        context.stroke();
         {% for some in org_file.file_parts.all %}
+        context.beginPath();
+       context.arc(centerX, centerY, rad*({{forloop.counter}}+1), 0, 2 * Math.PI, false);
+      context.lineWidth = 3;
+      context.strokeStyle = '#FF0000';
+      context.stroke();
+        n={{some.filIns.all.count}};
+        angle=2*Math.PI/n;
+        {% for somP in some.filIns.all %}
        context.beginPath();
-       context.arc(centerX+rad*Math.sin(angle*{{ forloop.counter }})*({{some.number}}+1), centerY+rad*Math.cos(angle*{{ forloop.counter }})*({{some.number}}+1), radius, 0, 2 * Math.PI, false);
+       context.arc(centerX+rad*Math.sin(angle*{{ forloop.counter }})*({{forloop.parentloop.counter}}+1), centerY+rad*Math.cos(angle*{{ forloop.counter }})*({{forloop.parentloop.counter}}+1), radius, 0, 2 * Math.PI, false);
        context.fillStyle = 'green';
-       context.fillText("{{some.link}}",centerX+rad*Math.sin(angle*{{ forloop.counter }})*({{some.number}}+1), centerY+rad*Math.cos(angle*{{ forloop.counter }})*({{some.number}}+1)-25);
+       context.fillText("{{somP.link}}",centerX+rad*Math.sin(angle*{{ forloop.counter }})*({{forloop.parentloop.counter}}+1), centerY+rad*Math.cos(angle*{{ forloop.counter }})*({{forloop.parentloop.counter}}+1)-25);
        context.fill();
        context.lineWidth = 5;
        context.strokeStyle = '#003300';
        context.stroke();
+        {% endfor %}
        {% endfor %}
        
  </script>

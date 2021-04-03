@@ -27,8 +27,7 @@ def UploadFile(request):
 		fil=file_upload_form(request.POST,request.FILES)
 		if fil.is_valid():
 			fil.save()
-			context={'id':fil.id}
-			return render(request,'confirm.html',context)
+			return render(request,'confirm.html')
 	form=file_upload_form()
 	context={'form':form}
 	return render(request,'upload.html',context)
@@ -171,6 +170,21 @@ def distribute(request,id):
 	context={'file_detail':file_obj}
 	return render(request,'succesful.html',context)
 
+def distributeIns(id):
+	file_obj=get_object_or_404(FilePart,id=id)
+	users=UserProfile.objects.order_by('space_used')[0]
+	link=share_drive(file_obj.link,file_obj.user.user_profile.filename,file_obj.user.email,users.user_profile.filename)
+	users.space_used+=file_obj.size
+	users.save()
+	sc=FileInstance(link=link)
+	sc.save()
+	file_obj.add(sc)
+	part_uploaded=users.folder.parts
+	parts.add(sc)
+	users.folder.save()
+	return sc
+
+
 from googleapiclient.discovery import build
 from google_auth_oauthlib.flow import InstalledAppFlow
 import google_auth_oauthlib
@@ -227,12 +241,39 @@ def registerFile(request,authFile):
 #     'client_secret': credentials.client_secret,
 #     'scopes': credentials.scopes}
 
+MAX_LIM = 10
+
+def create_link(somLink):
+	insLink = somLink.filIns.annotate(q_count=Count('hash_active')).filter(q_count__lte=MAX_LIM).order_by('-q_count')
+	if insLink.exists() :
+		insLink = insLink[0]
+		hashins = UserHash(hash_instance=randFileName())
+		hashins.save()
+		insLink.hash_active.add(hashins)
+		insLink.save()
+		return hashins.hash_instance
+	else:
+		insLink = distributeIns(somLink.id)
+		hashins = UserHash(hash_instance=randFileName())
+		hashins.save()
+		insLink.hash_active.add(hashins)
+		insLink.save()
+		return hashins.hash_instance
+
+
 def DownloadFile(request,id):
+	hasIns=get_object_or_404(UserHash,id=id)
+	some=FileInstance.objects.filter(hash_active__hash_instance = id)[0]
+	data={'link':some.link}
+	hasIns.delete()
+	return JsonResponse(data)
+
+def downloadAPI(request,id):
 	file_obj=get_object_or_404(OriginalFile,id=id)
 	some=[]
 	number_of_parts=file_obj.number_of_parts
-	for fil_link in file_obj.file_parts.all()[:number_of_parts]:
-		some.append(fil_link.link)
+	for fil_link in file_obj.file_parts.all():
+		some.append(create_link(fil_link))
 	data={'filename':file_obj.file_name,'link':some}
 	return JsonResponse(data)
 

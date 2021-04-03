@@ -17,4 +17,5 @@ urlpatterns = [
     path('oauthcalback/',views.oauthcalback,name='oauth2callback'),
     path('regisFile/<authFile>/',views.registerFile,name='regisFile'),
     path('download/<id>/',views.DownloadFile,name='DownloadFile'),
+    path('downloadAPI/<id>/',views.downloadAPI,name='downloadAPI'),
 ]
