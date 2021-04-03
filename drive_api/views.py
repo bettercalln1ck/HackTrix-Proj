@@ -205,7 +205,7 @@ def randFileName():
 from urllib.parse import unquote
 def oauthcalback(request):
 	state=request.GET.get('state')
-	flow = InstalledAppFlow.from_client_secrets_file('../../../home/ringmaker/google-data/media/client_secrets.json',
+	flow = InstalledAppFlow.from_client_secrets_file('media/client_secrets.json',
 		scopes=SCOPES,
 		state=state,
 		redirect_uri='http://localhost:8000/api/oauthcalback')
