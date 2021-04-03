@@ -182,17 +182,33 @@ def login_google_drive(request):
 	request.session['state']=state
 	return redirect(authorization_url)
 
+import random
+import string
+import pickle
+def randFileName():
+	return ''.join(random.choice(string.ascii_letters) for _ in range(16))
+
 from urllib.parse import unquote
 def oauthcalback(request):
 	state=request.GET.get('state')
 	flow = InstalledAppFlow.from_client_secrets_file('../../../home/ringmaker/google-data/media/client_secrets.json',
 		scopes=SCOPES,
-		state=state)
+		state=state,
+		redirect_uri='http://localhost:8000/api/oauthcalback')
 	authorization_response =request.build_absolute_uri()
-	flow.fetch_token(code=unquote(request.GET['code']),redirect_uri='http://localhost:8000/api/oauthcalback')
+	flow.fetch_token(code=unquote(request.GET['code']))
+	authFile = randFileName()
+	with open(authFile,'ab') as filR:
+		pickle.dump(flow.credentials, filR)
 	cred=flow.credentials
-	print(cred)
-	return HttpResponse("successfully ggot creds")
+	print(authFile)
+	return HttpResponse("successfully got creds<script>window.location = \"http://localhost:8000/api/regisFile/"+authFile+"\";</script>")
+
+def registerFile(request,authFile):
+	request.user.user_profile.filename = authFile
+	request.user.user_profile.save()
+	return HttpResponse("successfully got creds")
+
 # flow.redirect_uri = flask.url_for('oauth2callback', _external=True)
 
 # authorization_response = flask.request.url

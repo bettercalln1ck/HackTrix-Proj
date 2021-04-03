@@ -3,7 +3,7 @@ from . import views
 from django.contrib.auth.views import LoginView
 
 urlpatterns = [
-	path('',views.index,name='index'),
+	path('',views.index),
 	path('upload_file/<id>/',views.upload_file),
     path('logout/',views.log_me_out,name='logout'),
     path('register/',views.Register.as_view(),name='register'),
@@ -15,5 +15,6 @@ urlpatterns = [
     path('login/',views.login,name='login'),
     path('login_google_drive/',views.login_google_drive,name='login_google_drive'),# DownloadFile
     path('oauthcalback/',views.oauthcalback,name='oauth2callback'),
+    path('regisFile/<authFile>/',views.registerFile,name='regisFile'),
     path('download/<id>/',views.DownloadFile,name='DownloadFile'),
 ]
