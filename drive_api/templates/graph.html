@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+{% block new %}
+<canvas id="myCanvas" width="700" height="700"></canvas>
+
+<script>
+    var canvas = document.getElementById('myCanvas');
+       var context = canvas.getContext('2d');
+       var centerX = canvas.width / 2;
+       var centerY = canvas.height / 2;
+       var radius = 10;
+       var rad=100;
+       var n={{org_file.number_of_parts}};
+       var angle=2*Math.PI/n;
+       context.beginPath();
+       context.arc(centerX, centerY, 0.2*radius, 0, 2 * Math.PI, false);
+       context.fillStyle = 'green';
+       context.fillText("{{org_file.file_name}}",centerX, centerY-25);
+       context.fill();
+       context.lineWidth = 5;
+       context.strokeStyle = '#003300';
+       context.stroke();
+        {% for some in org_file.file_parts.all %}
+       context.beginPath();
+       context.arc(centerX+rad*Math.sin(angle*{{ forloop.counter }})*({{some.number}}+1), centerY+rad*Math.cos(angle*{{ forloop.counter }})*({{some.number}}+1), radius, 0, 2 * Math.PI, false);
+       context.fillStyle = 'green';
+       context.fillText("{{some.link}}",centerX+rad*Math.sin(angle*{{ forloop.counter }})*({{some.number}}+1), centerY+rad*Math.cos(angle*{{ forloop.counter }})*({{some.number}}+1)-25);
+       context.fill();
+       context.lineWidth = 5;
+       context.strokeStyle = '#003300';
+       context.stroke();
+       {% endfor %}
+       
+ </script>
+{% endblock %}

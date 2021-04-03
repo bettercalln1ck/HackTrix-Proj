@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% block new %}
+
+<h1>G Torretn files</h1>
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            {% for some in gtorrent %}
+            <div class="col-md-6">
+                <a href="{% url 'drivequery' some.id %}">
+                <div class="card">
+                    <div class="header">
+                        <h4 class="title">{{some.file_name}}</h4>
+                        <p class="category">{{some.number_of_parts}}</p>
+                    </div>
+                </div></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+
+{% endblock %}

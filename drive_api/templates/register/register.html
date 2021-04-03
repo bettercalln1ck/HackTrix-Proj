@@ -1,0 +1,44 @@
+{% extends 'login/base.html' %}
+{% block new %}
+<body>
+	
+	<div class="limiter">
+		<div class="container-login100" >
+			<div class="wrap-login100 p-l-55 p-r-55 p-t-65 p-b-54">
+				<form class="login100-form validate-form" action="{% url 'register' %}" method="post" enctype=multipart/form-data>
+					{% csrf_token %}
+					<span class="login100-form-title p-b-49">
+						SignUp
+					</span>
+					{% for field in form %}
+					<div class="wrap-input100 validate-input m-b-23" data-validate = "field is required">
+						<span class="label-input100">{{field.label_tag}}</span><br>
+						{{field}}
+						{% cycle '<span class="focus-input100" data-symbol="&#xf206;"></span>' '<span class="focus-input100" data-symbol="&#xf190;"></span>'%}
+					</div>
+					{% endfor %}
+					{% for field in profile_form %}
+					<div class="wrap-input100 validate-input m-b-23" data-validate = "field is required">
+						<span class="label-input100">{{field.label_tag}}</span><br>
+						{{field}}
+					</div>
+					{% endfor %}
+					
+					<div class="container-login100-form-btn">
+						<div class="wrap-login100-form-btn">
+							<div class="login100-form-bgbtn"></div>
+							<button class="login100-form-btn" type="submit">
+								Register
+							</button>
+						</div>
+					</div>
+
+					
+				</form>
+			</div>
+		</div>
+	</div>
+	
+	<div id="dropDownSelect1"></div>
+
+{% endblock %}

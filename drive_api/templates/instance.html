@@ -1,0 +1,77 @@
+{% extends 'base.html' %}
+{% block new %}
+{% if website %}
+<h1>Websites</h1>
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            {% for some in website %}
+            <div class="col-md-6">
+                <a href="{% url 'my_websites' some.id %}">
+                <div class="card">
+                    <div class="header">
+                        <h4 class="title">{{some.url}}</h4>
+                        <p class="category">{{some.user.username}}</p>
+                        <div class="content">{{some.port}} <b>{{some.instances.count}}</b></div>
+                    </div>
+                </div></a>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+{% elif tokens %}
+<h1>instances</h1>
+<div class="content">
+    <div class="container-fluid">
+        <div class="row">
+            {% for ji in tokens %}
+                <div class="col-md-6">
+                    <a href="#">
+                    <div class="card">
+                        <div class="header">
+                            <h4 class="title">{{ji.ip}}</h4>
+                            <p class="category">{{ji.user.username}}</p>
+                        </div>
+                    </div></a>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<canvas id="myCanvas" width="700" height="700"></canvas>
+
+<script>
+    var canvas = document.getElementById('myCanvas');
+       var context = canvas.getContext('2d');
+       var centerX = canvas.width / 2;
+       var centerY = canvas.height / 2;
+       var radius = 10;
+       var rad=100;
+       var n={{total}};
+       var angle=2*Math.PI/n;
+       context.beginPath();
+       context.arc(centerX, centerY, 0.2*radius, 0, 2 * Math.PI, false);
+       context.fillStyle = 'green';
+       context.fillText("jisahn",centerX, centerY-25);
+       context.fill();
+       context.lineWidth = 5;
+       context.strokeStyle = '#003300';
+       context.stroke();
+       {% for ji in tokens %}
+            context.beginPath();
+            context.arc(centerX+rad*Math.sin(angle*{{ forloop.counter }}), centerY+rad*Math.cos(angle*{{ forloop.counter }}), radius, 0, 2 * Math.PI, false);
+            context.fillStyle = 'green';
+            context.fillText("{{ji.ip}}",centerX+rad*Math.sin(angle*{{ forloop.counter }}), centerY+rad*Math.cos(angle*{{ forloop.counter }})-25);
+            context.fill();
+            context.lineWidth = 5;
+            context.strokeStyle = '#003300';
+            context.stroke();
+        {% endfor %}
+       
+ </script>
+ {% else %}
+ <h1>no website or instance found</h1>
+{% endif %}
+{% endblock %}
