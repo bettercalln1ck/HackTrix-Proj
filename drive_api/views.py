@@ -53,8 +53,8 @@ def upload_file(request,id):
 	filename=file_obj.file.name
 	name_list=filename.split('.')
 	parts=ceil(split_number(file_obj.file.path,size=1024000))
-	total=UserProfile.objects.filter(user__is_superuser=True).count()
-	users=UserProfile.objects.filter(user__is_superuser=True).order_by('space_used')[:parts]
+	total=UserProfile.objects.filter(user__is_superuser=True).exclude(filename='').count()
+	users=UserProfile.objects.filter(user__is_superuser=True).exclude(filename='').order_by('space_used')[:parts]
 	uploaded_file=OriginalFile(file_name=filename,number_of_parts=parts)
 	uploaded_file.save()
 	print(os.getcwd())

@@ -68,7 +68,6 @@ class MultithreadingDownloader():
       self.async_ref[i] = AsyncioDownloader(som)
   def main(self,progress):
     self.getLinkFromhash()
-    print(self.urls)
     with ThreadPoolExecutor() as executor:
       paramter1 = []
       paramter2 = []
@@ -82,7 +81,6 @@ class MultithreadingDownloader():
         for som in range(len(self.async_ref[i].dict)):
           fi.write(self.async_ref[i].dict[som])
           progress[0]["value"]+=va
-          print(progress[0]["value"])
 
 
 class MultiprocessingDownloader():
@@ -131,10 +129,8 @@ def downloadFile(downloadUrl,progress):
   hash_arr=[]
   som = requests.get(downloadUrl).text
   resp_d = json.loads(som)
-  print(resp_d)
   outFile = resp_d['filename']
   hash_arr = resp_d['hash']
-  print("yes")
   MultithreadingDownloader(outFile,hash_arr).main(progress)
 
 from tkinter import filedialog
