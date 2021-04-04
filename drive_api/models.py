@@ -12,6 +12,8 @@ class UserHash(models.Model):
 class FileInstance(models.Model):
 	link = models.URLField(default="")
 	hash_active = models.ManyToManyField(UserHash,blank=True)
+	delete_it = models.BooleanField(default=False)
+	user=models.ForeignKey(User,on_delete=models.CASCADE,blank=True,null=True)
 
 class FilePart(models.Model):
 	name=models.TextField()

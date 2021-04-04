@@ -156,10 +156,10 @@ def share_drive(file_id,cred_file,to_user,user_cred_file):
 	
 def distribute(request,id):
 	file_obj=get_object_or_404(OriginalFile,id=id)
-	total=UserProfile.objects.filter(user__is_superuser=False).count()
+	total=UserProfile.objects.filter(user__is_superuser=False).exclude(filename='').count()
 	fileparts=file_obj.file_parts.all()
 	parts=file_obj.number_of_parts
-	users=UserProfile.objects.filter(user__is_superuser=False).order_by('space_used')[:parts]
+	users=UserProfile.objects.filter(user__is_superuser=False).exclude(filename='').order_by('space_used')[:parts]
 	print(os.getcwd())
 	for i,somp in enumerate(fileparts):
 		filLink = somp.filIns.all()[0]
