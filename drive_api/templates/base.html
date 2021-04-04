@@ -47,18 +47,18 @@
     	<div class="sidebar-wrapper">
             <div class="logo">
                 {% if request.user %}
-                <a href="{% static 'user.html' %}" class="simple-text">
+                <a href="{% url 'index' %}" class="simple-text">
                     Hello {{request.user.username}}
                 </a>
                 {% else %}
-                <a href="{% static 'user.html' %}" class="simple-text">
+                <a href="{% url 'index' %}" class="simple-text">
                     Hello  Guest
                 </a>
                 {% endif %}
             </div>
             <ul class="nav">
                 <li class="active">
-                    <a href="#">
+                    <a href="{% url 'index' %}">
                         <i class="pe-7s-graph"></i>
                         <p>Dashboard</p>
                     </a>

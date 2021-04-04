@@ -89,6 +89,7 @@ class g_auth:
       'role': 'reader',
       'emailAddress': to_user
     }
+    print(user_permission)
     batch.add(self.drive_service.permissions().create(
         fileId=file_id,
         body=user_permission,
@@ -111,6 +112,7 @@ class g_auth:
      }
      file = self.drive_service.files().create(body=file_metadata,fields='id').execute()
      print('Folder ID: %s' % file.get('id'))
+     return file.get('id')
 
 # id1='token1.pickle'
 # id2='token2.pickle'

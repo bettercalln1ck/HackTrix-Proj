@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'drive_api',
+    'django_crontab',
 ]
 
 MIDDLEWARE = [
@@ -101,6 +102,9 @@ AUTH_PASSWORD_VALIDATORS = [
     },
 ]
 
+CRONJOBS = [
+    ('*/2 * * * *', 'drive_api.job_cron.job_init')
+]
 
 # Internationalization
 # https://docs.djangoproject.com/en/2.2/topics/i18n/

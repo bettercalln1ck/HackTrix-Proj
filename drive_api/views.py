@@ -18,10 +18,16 @@ import time
 from django.views.decorators.csrf import csrf_exempt
 import json
 from django.db.models import Count
-MINIMUM_NO_OFINSTANCE=1
+
+WEBSITE_NAME = 'http://127.0.0.1:8000/'
+MAX_LIM = 7
+
 def index(request):
-	context = {'files':OriginalFile.objects.all()}
-	return render(request,'index.html',context)
+	if request.user.is_authenticated:
+		context = {'files':OriginalFile.objects.all(),'web_link':WEBSITE_NAME.rstrip('/')}
+		return render(request,'index.html',context)
+	else:
+		return redirect('login')
 
 def forUploading(request):
 	if request.user.is_superuser:
@@ -46,9 +52,9 @@ def upload_file(request,id):
 	file_obj=get_object_or_404(FileUpload,id=id)
 	filename=file_obj.file.name
 	name_list=filename.split('.')
-	parts=ceil(split_number(file_obj.file.path,2))
-	total=UserProfile.objects.count()
-	users=UserProfile.objects.order_by('space_used')[:parts]
+	parts=ceil(split_number(file_obj.file.path,size=1024000))
+	total=UserProfile.objects.filter(user__is_superuser=True).count()
+	users=UserProfile.objects.filter(user__is_superuser=True).order_by('space_used')[:parts]
 	uploaded_file=OriginalFile(file_name=filename,number_of_parts=parts)
 	uploaded_file.save()
 	print(os.getcwd())
@@ -58,7 +64,7 @@ def upload_file(request,id):
 		link=upload_drive(upload_name,users[i%total].filename)
 		file_size=os.path.getsize('media/'+filename)
 		users[i%total].space_used+=file_size
-		filIns = FileInstance(link = link)
+		filIns = FileInstance(link = link,user = users[i%total].user)
 		filIns.save()
 		sc=FilePart(name=upload_name,user=users[i%total].user,number=i,size=file_size)
 		sc.save()
@@ -82,28 +88,25 @@ class Register(View):
 	def __init__(self):
 		self.template_name='register/register.html'
 	def get(self,request):
-		form=UserCreationForm()
+		form=LoginForm()
 		profile_form=ProfileForm()
 		context={'form':form,'profile_form':profile_form}
 		return render(request,self.template_name,context)
 	def post(self,request):
-		form=UserCreationForm(request.POST)
-		profile=ProfileForm(request.POST,request.FILES)
+		form=LoginForm(request.POST)
+		profile=ProfileForm(request.POST)
 		if form.is_valid():
-			username=form.cleaned_data['username']
-			password=form.cleaned_data['password1']
-			form=form.save(commit=False)
-			form=form.save()
+			somF = form.save()
+			username=form['username'].value()
+			password=form['password'].value()
+			print(username)
+			print(password)
 			user=authenticate(username=username,password=password)
-			if user:
-				login(request,user)
-				profile=profile.save(commit=False)
-				print(profile)
-				print(form)
-				profile.user=user
-				print(profile)
-				profile.save()
-				return redirect('view_profile')
+			djangologin(request,somF)
+			profile = profile.save(commit=False)
+			profile.user=somF
+			profile.save()
+			return redirect('view_profile')
 		return redirect('register')
 
 class ViewProfile(View):
@@ -131,7 +134,7 @@ def log_me_out(request):
 	logout(request)
 	return redirect('login')
 
-def login(request):
+def loginP(request):
     if request.method=='POST':
         form=LoginForm(request.POST)
         print(request.POST)
@@ -147,45 +150,46 @@ def login(request):
 
 def share_drive(file_id,cred_file,to_user,user_cred_file):
 	cred=g_auth('media/cred/'+cred_file)
-	file_id=cred.share_file(file_id,to_user)
+	cred.share_file(file_id,to_user)
 	f=g_auth('media/cred/'+user_cred_file)
-	return f.copy_file(file_id['id'],'aaa')
+	return f.copy_file(file_id,'aaa')
 	
 def distribute(request,id):
 	file_obj=get_object_or_404(OriginalFile,id=id)
-	total=UserProfile.objects.count()
+	total=UserProfile.objects.filter(user__is_superuser=False).count()
 	fileparts=file_obj.file_parts.all()
-	print(fileparts)
 	parts=file_obj.number_of_parts
-	users=UserProfile.objects.order_by('space_used')[:parts]
+	users=UserProfile.objects.filter(user__is_superuser=False).order_by('space_used')[:parts]
 	print(os.getcwd())
-	for i,some in enumerate(fileparts):
+	for i,somp in enumerate(fileparts):
+		filLink = somp.filIns.all()[0]
 		userIns = users[i%total]
-		file_obj=get_object_or_404(FilePart,id=id)
-		userIns=UserProfile.objects.order_by('space_used')[0]
-		link=share_drive(file_obj.link,file_obj.user.user_profile.filename,file_obj.user.email,userIns.user_profile.filename)
-		userIns.space_used+=file_obj.size
+		link=share_drive(filLink.link,filLink.user.user_profile.filename,userIns.user.email,userIns.filename).get('id')
+		userIns.space_used+=somp.size
 		userIns.save()
-		sc=FileInstance(link=link)
+		sc=FileInstance(link=link,user = users[i%total].user)
 		sc.save()
-		file_obj.add(sc)
+		somp.filIns.add(sc)
+		somp.save()
 		part_uploaded=userIns.folder.parts
-		part_uploaded.add(sc)
+		part_uploaded.add(somp)
 		userIns.folder.save()
 	context={'file_detail':file_obj}
 	return render(request,'succesful.html',context)
 
 def distributeIns(id):
 	file_obj=get_object_or_404(FilePart,id=id)
-	users=UserProfile.objects.order_by('space_used')[0]
-	link=share_drive(file_obj.link,file_obj.user.user_profile.filename,file_obj.user.email,users.user_profile.filename)
+	filLink = file_obj.filIns.all()[0]
+	users=UserProfile.objects.filter(user__is_superuser=False).order_by('space_used')[0]
+	link=share_drive(filLink.link,filLink.user.user_profile.filename,users.user.email,users.filename).get('id')
 	users.space_used+=file_obj.size
 	users.save()
-	sc=FileInstance(link=link)
+	sc=FileInstance(link=link,user = users.user)
 	sc.save()
-	file_obj.add(sc)
+	file_obj.filIns.add(sc)
+	file_obj.save()
 	part_uploaded=users.folder.parts
-	part_uploaded.add(sc)
+	part_uploaded.add(file_obj)
 	users.folder.save()
 	return sc
 
@@ -196,7 +200,7 @@ import google_auth_oauthlib
 SCOPES = ['https://www.googleapis.com/auth/drive']
 def login_google_drive(request):
 	flow = InstalledAppFlow.from_client_secrets_file('media/client_secrets.json', SCOPES)
-	flow.redirect_uri = 'http://localhost:8000/api/oauthcalback'
+	flow.redirect_uri = WEBSITE_NAME+'api/oauthcalback'
 	authorization_url, state = flow.authorization_url(access_type='offline',include_granted_scopes='true')
 	request.session['state']=state
 	return redirect(authorization_url)
@@ -213,7 +217,7 @@ def oauthcalback(request):
 	flow = InstalledAppFlow.from_client_secrets_file('media/client_secrets.json',
 		scopes=SCOPES,
 		state=state,
-		redirect_uri='http://localhost:8000/api/oauthcalback')
+		redirect_uri=WEBSITE_NAME+'api/oauthcalback')
 	authorization_response =request.build_absolute_uri()
 	flow.fetch_token(code=unquote(request.GET['code']))
 	authFile = randFileName()
@@ -221,18 +225,20 @@ def oauthcalback(request):
 		pickle.dump(flow.credentials, filR)
 	cred=flow.credentials
 	print(authFile)
-	return HttpResponse("successfully got creds<script>window.location = \"http://localhost:8000/api/regisFile/"+authFile+"\";</script>")
+	return HttpResponse("successfully got creds<script>window.location = \""+WEBSITE_NAME+"api/regisFile/"+authFile+"\";</script>")
 
 def registerFile(request,authFile):
 	request.user.user_profile.filename = authFile
 	request.user.user_profile.save()
+	newFolder = folder()
+	newFolder.save()
+	request.user.user_profile.folder = newFolder
+	request.user.user_profile.save()
 	return redirect('index')
 
 
-MAX_LIM = 10
-
 def create_link(somLink):
-	insLink = somLink.filIns.annotate(q_count=Count('hash_active')).filter(q_count__lte=MAX_LIM).order_by('-q_count')
+	insLink = somLink.filIns.annotate(q_count=Count('hash_active')).filter(delete_it=False).filter(q_count__lte=MAX_LIM).order_by('-q_count')
 	if insLink.exists() :
 		insLink = insLink[0]
 		hashins = UserHash(hash_instance=randFileName())
@@ -241,6 +247,8 @@ def create_link(somLink):
 		insLink.save()
 		return hashins.hash_instance
 	else:
+		for som in somLink.filIns.all():
+			som.delete_it = True
 		insLink = distributeIns(somLink.id)
 		hashins = UserHash(hash_instance=randFileName())
 		hashins.save()
