@@ -3,23 +3,31 @@
 
         <div class="content">
             <div class="container-fluid">
-
+                {% for som in files %}
                 <div class="row">
 
                     <div class="col-md-6">
                         <div class="card ">
                             <div class="header">
-                                <h4 class="title">share your google storage</h4>
-                                <p class="category">Earn Coins</p>
+                                <h4 class="title">{{som.file_name}}</h4>
+                                <p class="category"><input id="som_inp_{{forloop.counter}}" type="text" value="{{web_link}}{%url 'downloadAPI' som.id%}">
+                                    <button onclick='var copyText = document.getElementById("som_inp_{{forloop.counter}}");copyText.select();copyText.setSelectionRange(0, 99999);document.execCommand("copy");'>Copy Link</button>
+                                    {% if user.is_superuser %}
+                                        <a href="{%url 'distribute' som.id %}"><button >distribute</button></a>
+                                    {% endif %}
+                                    </p>
                             </div>
                             <div class="content">
-                                just give access to your drive and earn coins
+                                copy download link 
                             </div>
                         </div>
                     </div>
                 </div>
+                {% endfor %}
             </div>
         </div>
+        <script type="text/javascript">
+        </script>
 {% endblock %}
 
  

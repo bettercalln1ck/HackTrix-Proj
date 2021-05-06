@@ -6,7 +6,7 @@ from google_auth_oauthlib.flow import InstalledAppFlow
 from google.auth.transport.requests import Request
 from apiclient import errors
 from apiclient.http import MediaFileUpload
-
+import os
 # If modifying these scopes, delete the file token.pickle.
 SCOPES = ['https://www.googleapis.com/auth/drive']
 import os
@@ -45,11 +45,29 @@ class g_auth:
       print('Files:')
       for item in items:
         print(u'{0} ({1})'.format(item['name'], item['id']))
-  def upload_file(self,filename):
+  def upload_file(self,filename,locF):
+    print(os.getcwd())
     file_metadata = {'name': filename}
-    media = MediaFileUpload(filename,mimetype='image/jpeg')
+    media = MediaFileUpload(locF,mimetype='image/jpeg')
     file = self.drive_service.files().create(body=file_metadata,
+                                        media_body=media,
                                         fields='id').execute()
+    def callback(request_id, response, exception):
+      if exception:
+        print(exception)
+      else:
+        print("Permission Id: %s" % response.get('id'))
+    batch = self.drive_service.new_batch_http_request(callback=callback)
+    user_permission = {
+      'type': 'anyone',
+      'role': 'reader'
+    }
+    batch.add(self.drive_service.permissions().create(
+        fileId=file.get('id'),
+        body=user_permission,
+        fields='id',
+    ))
+    batch.execute()
     return file.get('id')
   def copy_to_drive(self,file_id,copy_name):
     copied_file = {'title': copy_name}
@@ -71,6 +89,7 @@ class g_auth:
       'role': 'reader',
       'emailAddress': to_user
     }
+    print(user_permission)
     batch.add(self.drive_service.permissions().create(
         fileId=file_id,
         body=user_permission,
@@ -93,6 +112,7 @@ class g_auth:
      }
      file = self.drive_service.files().create(body=file_metadata,fields='id').execute()
      print('Folder ID: %s' % file.get('id'))
+     return file.get('id')
 
 # id1='token1.pickle'
 # id2='token2.pickle'

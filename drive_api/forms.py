@@ -12,13 +12,11 @@ class ProfileForm(forms.ModelForm):
     class Meta:
         model=UserProfile
         fields=('space',)
-        widgets = {
-            'space': forms.IntegerField(),
-        }
 class LoginForm(forms.ModelForm):
     password = forms.CharField(widget=forms.PasswordInput(attrs={'class':'input100','placeholder':'Type your username'}))
     username=forms.CharField(widget=forms.TextInput(attrs={'class':'input100','placeholder':'Type your password'}))
+    email=forms.CharField(widget=forms.TextInput(attrs={'class':'input100','placeholder':'Type your email'}))
     class Meta:
         model=User
-        fields=('username','password',)
+        fields=('username','password','email',)
 

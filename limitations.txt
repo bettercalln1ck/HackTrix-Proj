@@ -1,0 +1,8 @@
+assumptions
+at least one non super user share their drive
+it doesnot take into account space specified by user, it just order user by it
+
+it shares the file when number of user exceed 7, that means 8th user download will take much more time
+
+size is fixed to be 102400b while in practical use it should be about less than 200 Mb
+

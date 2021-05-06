@@ -47,18 +47,18 @@
     	<div class="sidebar-wrapper">
             <div class="logo">
                 {% if request.user %}
-                <a href="{% static 'user.html' %}" class="simple-text">
+                <a href="{% url 'index' %}" class="simple-text">
                     Hello {{request.user.username}}
                 </a>
                 {% else %}
-                <a href="{% static 'user.html' %}" class="simple-text">
+                <a href="{% url 'index' %}" class="simple-text">
                     Hello  Guest
                 </a>
                 {% endif %}
             </div>
             <ul class="nav">
                 <li class="active">
-                    <a href="#">
+                    <a href="{% url 'index' %}">
                         <i class="pe-7s-graph"></i>
                         <p>Dashboard</p>
                     </a>
@@ -74,6 +74,14 @@
                     <a href="{% url 'myfiles' %}">
                         <i class="pe-7s-graph"></i>
                         <p>check the files</p>
+                    </a>
+                </li>
+                {% endif %}
+                {% if request.user.is_superuser %}
+                <li>
+                    <a href="{% url 'activate' %}">
+                        <i class="pe-7s-graph"></i>
+                        <p>activatation requests</p>
                     </a>
                 </li>
                 {% endif %}
@@ -146,35 +154,6 @@
 		{% endblock %}
 
 
-        <footer class="footer">
-            <div class="container-fluid">
-                <nav class="pull-left">
-                    <ul>
-                        <li>
-                            <a href="#">
-                                Home
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#">
-                                Company
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#">
-                                Portfolio
-                            </a>
-                        </li>
-                        <li>
-                            <a href="#">
-                               Blog
-                            </a>
-                        </li>
-                    </ul>
-                </nav>
-            </div>
-        </footer>
-
     </div>
 </div>
 
@@ -199,21 +178,6 @@
 	<!-- Light Bootstrap Table DEMO methods, don't include it in your project! -->
 	<script src="{% static 'assets/js/demo.js' %}"></script>
 
-	<script type="text/javascript">
-    	$(document).ready(function(){
 
-        	demo.initChartist();
-
-        	$.notify({
-            	icon: 'pe-7s-gift',
-            	message: "Welcome to <b>Light Bootstrap Dashboard</b> - a beautiful freebie for every web developer."
-
-            },{
-                type: 'info',
-                timer: 4000
-            });
-
-    	});
-	</script>
 
 </html>
